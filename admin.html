@@ -31,10 +31,10 @@ td input { width: 90%; border: none; background: none; font-family: inherit; fon
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyDU1Y4OlxJCDES_TP24pVtuXvgnEauWdsE",
-    authDomain: "gulzada-qr.firebaseapp.com",
-    databaseURL: "https://gulzada-qr-default-rtdb.firebaseio.com",
-    projectId: "gulzada-qr",
-    storageBucket: "gulzada-qr.firebasestorage.app",
+    authDomain: "qr-code-gul.firebaseapp.com",
+    databaseURL: "https://qr-code-gul-default-rtdb.firebaseio.com",
+    projectId: "qr-code-gul",
+    storageBucket: "qr-code-gul.appspot.com",
     messagingSenderId: "1083785729714",
     appId: "1:1083785729714:web:87846f485c72720e131bab",
     measurementId: "G-XDC3EJ392C"
@@ -49,25 +49,38 @@ const groups = [
     {name:"Тізбек", element:document.getElementById("tizb")}
 ];
 
-// 27 бала үшін теңдей топ пулын жасау
-let groupPool = [
-    ...Array(9).fill("Арифметика"),
-    ...Array(9).fill("Прогрессия"),
-    ...Array(9).fill("Тізбек")
-];
-function shuffle(array){for(let i=array.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]];}}
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Рандом 20 баланы 3 топқа бөлу үшін функция
+function getGroupPool(){
+    const combos = [
+        [6,7,7],
+        [7,6,7],
+        [7,7,6]
+    ];
+    const choice = combos[Math.floor(Math.random()*combos.length)];
+    let pool = [];
+    pool.push(...Array(choice[0]).fill("Арифметика"));
+    pool.push(...Array(choice[1]).fill("Прогрессия"));
+    pool.push(...Array(choice[2]).fill("Тізбек"));
+    shuffle(pool);
+    return pool;
+}
+
+// Бастапқы топ пул
+let groupPool = getGroupPool();
 
 // Қайтадан батырмасы
 document.getElementById("resetBtn").addEventListener("click", ()=>{
     if(confirm("Барлық жазбаларды өшіргіңіз келе ме?")){
         db.ref('students').remove().then(()=>{
             alert("Барлық жазбалар өшірілді!");
-            groupPool = [
-                ...Array(9).fill("Арифметика"),
-                ...Array(9).fill("Прогрессия"),
-                ...Array(9).fill("Тізбек")
-            ];
-            shuffle(groupPool);
+            groupPool = getGroupPool();
         });
     }
 });
