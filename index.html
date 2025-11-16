@@ -34,9 +34,9 @@ td input { width: 90%; border: none; background: none; font-family: inherit; fon
 const firebaseConfig = {
     apiKey: "AIzaSyDU1Y4OlxJCDES_TP24pVtuXvgnEauWdsE",
     authDomain: "gulzada-qr.firebaseapp.com",
-    databaseURL: "https://gulzada-qr-default-rtdb.firebaseio.com",
-    projectId: "gulzada-qr",
-    storageBucket: "gulzada-qr.firebasestorage.app",
+    databaseURL: "https://qr-code-gul-default-rtdb.firebaseio.com",
+    projectId: "qr-code-gul",
+    storageBucket: "gulzada-qr.appspot.com",
     messagingSenderId: "1083785729714",
     appId: "1:1083785729714:web:87846f485c72720e131bab",
     measurementId: "G-XDC3EJ392C"
@@ -51,12 +51,21 @@ const groups = [
     {name:"Тізбек", element:document.getElementById("tizb")}
 ];
 
-// 27 бала үшін теңдей топ пулын жасау (9-9-9)
-let groupPool = [
-    ...Array(9).fill("Арифметика"),
-    ...Array(9).fill("Прогрессия"),
-    ...Array(9).fill("Тізбек")
-];
+// Рандом 20 баланы 3 топқа бөлу үшін
+function getGroupPool(){
+    const combos = [
+        [6,7,7],
+        [7,6,7],
+        [7,7,6]
+    ];
+    const choice = combos[Math.floor(Math.random()*combos.length)];
+    let pool = [];
+    pool.push(...Array(choice[0]).fill("Арифметика"));
+    pool.push(...Array(choice[1]).fill("Прогрессия"));
+    pool.push(...Array(choice[2]).fill("Тізбек"));
+    shuffle(pool);
+    return pool;
+}
 
 // Shuffle функциясы
 function shuffle(array) {
@@ -65,21 +74,38 @@ function shuffle(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
 }
-shuffle(groupPool);
 
+// Топ пул
+let groupPool = getGroupPool();
+
+// Қайталау тексеру: бала аты бір рет қана
+function nameExists(name, data) {
+    return Object.values(data).some(s => s.name.toLowerCase() === name.toLowerCase());
+}
+
+// Балаға топ тағайындау
 function assignGroup() {
     const input = document.getElementById("studentName");
     const name = input.value.trim();
     if(!name) { alert("Атыңызды енгізіңіз!"); return; }
 
-    if(groupPool.length === 0) { 
-        alert("Барлық топтар толық толды!"); 
-        return; 
-    }
+    db.ref('students').once('value', snapshot => {
+        const data = snapshot.val() || {};
+        if(nameExists(name, data)){
+            alert("Бұл ат бұрын енгізілген!");
+            input.value = "";
+            return;
+        }
 
-    const groupName = groupPool.pop();
-    db.ref('students').push({name: name, group: groupName});
-    input.value = "";
+        if(groupPool.length === 0){ 
+            alert("Барлық топтар толық толды!"); 
+            return; 
+        }
+
+        const groupName = groupPool.pop();
+        db.ref('students').push({name: name, group: groupName});
+        input.value = "";
+    });
 }
 
 document.getElementById("assignBtn").addEventListener("click", assignGroup);
